@@ -150,7 +150,6 @@
             </div>
         </div>
     </div>
-
 @endsection
 
 @section('scripts')
@@ -232,7 +231,98 @@
 
             drawnItems.addLayer(layer);
         });
+
+        /* GeoJSON Point */
+        var point = L.geoJson(null, {
+            onEachFeature: function(feature, layer) {
+                var popupContent = "Nama: " + feature.properties.name + "<br>" +
+                    "Deskripsi: " + feature.properties.description + "<br>" +
+                    "Dibuat: " + feature.properties.created_at;
+                layer.on({
+                    click: function(e) {
+                        point.bindPopup(popupContent);
+                    },
+                    mouseover: function(e) {
+                        point.bindTooltip(feature.properties.name);
+                    },
+                });
+            },
+        });
+        $.getJSON("{{ route('api.points') }}", function(data) {
+            point.addData(data);
+            map.addLayer(point);
+        });
+
+
+        /* GeoJSON Polylines */
+        var polyline = L.geoJson(null, {
+            style: function(feature) {
+                return {
+                    color: "red", // Warna garis
+                    weight: 4, // Ketebalan garis
+                    opacity: 0.8 // Transparansi garis
+                };
+            },
+            onEachFeature: function(feature, layer) {
+                var popupContent = "Nama: " + feature.properties.name + "<br>" +
+                    "Deskripsi: " + feature.properties.description + "<br>" +
+                    "Panjang: " + feature.properties.length_km.toFixed(2) + "km<br>" +
+                    "Dibuat: " + feature.properties.created_at;
+                layer.on({
+                    click: function(e) {
+                        polyline.bindPopup(popupContent);
+                    },
+                    mouseover: function(e) {
+                        polyline.bindTooltip(feature.properties.name);
+                    },
+                });
+            },
+        });
+        $.getJSON("{{ route('api.polylines') }}", function(data) {
+            polyline.addData(data);
+            map.addLayer(polyline);
+        });
+
+        // GeoJSON Polygons
+        var polygon = L.geoJson(null, {
+            style: function(feature) {
+                return {
+                    color: "#2D336B", // Warna garis tepi polygon
+                    fillColor: "#FBE4D6", // Warna isi polygon
+                    weight: 2, // Ketebalan garis tepi
+                    opacity: 1, // Transparansi garis tepi
+                    fillOpacity: 0.5 // Transparansi warna isi
+                };
+            },
+            onEachFeature: function(feature, layer) {
+                var popupContent = "Nama: " + feature.properties.name + "<br>" +
+                    "Deskripsi: " + feature.properties.description + "<br>" + "Luas: " + feature.properties
+                    .area_ha.toFixed(2) + " ha" + "<br>" +
+                    "Dibuat: " + feature.properties.created_at;
+                layer.bindPopup(popupContent);
+            },
+        });
+        $.getJSON("{{ route('api.polygons') }}", function(data) {
+            polygon.addData(data);
+            map.addLayer(polygon);
+        });
+        // Group layers
+        var baseMaps = {
+            "OpenStreetMap": L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            })
+        };
+
+        // Overlay layers (data GeoJSON)
+        var overlayMaps = {
+            "Points": point,
+            "Polylines": polyline,
+            "Polygons": polygon
+        };
+
+        // Add layer control to map
+        L.control.layers(baseMaps, overlayMaps, {
+            collapsed: false 
+        }).addTo(map);
     </script>
 @endsection
-
-</html>
