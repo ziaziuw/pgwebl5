@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class PolylinesModel extends Model
 {
     protected $table = 'polylines';
-    protected $guided = ['id'];
+    protected $guarded = ['id'];
 
     public function geojson_polylines()
     {
@@ -17,6 +17,7 @@ class PolylinesModel extends Model
                 ST_AsGeoJSON(geom) AS geom,
                 name,
                 description,
+                image,
                 ST_Length(geom, true) AS length_m,
                 ST_Length(geom, true) / 1000 AS length_km,
                 created_at,
@@ -33,6 +34,7 @@ class PolylinesModel extends Model
                     'properties' => [
                         'name' => $polyline->name,
                         'description' => $polyline->description,
+                        'image' => $polyline->image,
                         'length_m' => $polyline->length_m,
                         'length_km' => $polyline->length_km,
                         'created_at' => $polyline->created_at,
@@ -47,5 +49,6 @@ class PolylinesModel extends Model
         'geom',
         'name',
         'description',
+        'image',
     ];
 }

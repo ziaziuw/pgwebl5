@@ -17,6 +17,7 @@ class PolygonsModel extends Model
                 ST_AsGeoJSON(geom) AS geom,
                 name,
                 description,
+                image,
                 ST_Area(geom, true) AS area_m2,
                 ST_Area(geom, true) / 10000 AS area_ha,
                 created_at,
@@ -33,6 +34,7 @@ class PolygonsModel extends Model
                     'properties' => [
                         'name' => $polygon->name,
                         'description' => $polygon->description,
+                        'image' => $polygon->image,
                         'area_m2' => $polygon->area_m2,
                         'area_ha' => $polygon->area_ha, // Konversi ke hektar
                         'created_at' => $polygon->created_at,
@@ -47,5 +49,6 @@ class PolygonsModel extends Model
         'geom',
         'name',
         'description',
+        'image',
     ];
 }

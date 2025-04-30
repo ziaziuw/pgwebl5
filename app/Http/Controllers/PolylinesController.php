@@ -48,25 +48,44 @@ class PolylinesController extends Controller
                 'name' => 'required|unique:polylines,name',
                 'description' => 'required',
                 'geom_polyline' => 'required',
+                'image'       => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10240',
             ],
             [
                 'name.required' => 'Name is required',
                 'name.unique' => 'Name already exists',
                 'description.required' => 'Description is required',
                 'geom_polyline.required' => 'Geometry is required',
+                'image.image'          => 'File harus berupa gambar',
+                'image.mimes'          => 'Format gambar hanya jpeg,png,jpg,gif,svg',
+                'image.max'            => 'Ukuran gambar maksimal 10MB',
             ]
         );
 
-        // Simpan data dengan ST_GeomFromText biar geom masuk format geometry di DB
+        //Create image directory if not exsits
+        if (!is_dir('storage/images')) {
+            mkdir('./storage/images', 0777);
+        }
+
+        //Get image file
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $name_image = time() . "_polyline." . strtolower($image->getClientOriginalExtension());
+            $image->move('storage/images', $name_image);
+        } else {
+            $name_image = null;
+        }
+
+
         $data = [
             'geom' => DB::raw("ST_GeomFromText('" . $request->geom_polyline . "', 4326)"),
             'name' => $request->name,
             'description' => $request->description,
-            'image' => $request->image ?? null,
+            'image'       => $name_image,
         ];
 
         // Gagal
-        if (!$this->polylines->create($data)) {
+        $insert = DB::table('polylines')->insert($data);
+        if (!$insert) {
             return redirect()->route('map')->with('error', 'Polyline failed to add');
         }
 
