@@ -56,12 +56,12 @@ class PointsController extends Controller
             ]
         );
 
-        //Create image directory if not exsits
+        //Membuat tempat penyimpanan gambar
         if (!is_dir('storage/images')) {
             mkdir('./storage/images', 0777);
         }
 
-        //Get image file
+        //Mendapatkan file gambar
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $name_image = time() . "_point." . strtolower($image->getClientOriginalExtension());
@@ -77,12 +77,12 @@ class PointsController extends Controller
             'image'       => $name_image,
         ];
 
-        // Create data
+        // Membuat data
         if (!$this->points->create($data)) {
             return redirect()->route('map')->with('error', 'Point failed to add');
         }
 
-        // Redirect to map
+        // Kembalikan ke peta1
         return redirect()->route('map')->with('success', 'Point has been added');
     }
 
@@ -99,7 +99,12 @@ class PointsController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $data = [
+            'title' => 'Edit Point',
+            'id' => $id,
+        ];
+
+        return view('edit-point', $data);
     }
 
     /**
@@ -115,6 +120,16 @@ class PointsController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $imagefile = $this->points->find($id)->image;
+        if (!$this->points->destroy($id)){
+            return redirect()->route('map')->with('error', 'Point failed to delete');
+        }
+        //Delete image file
+        if ($imagefile !=null){
+            if (file_exists('./storage/images/' .$imagefile)){
+                unlink('./storage/images/' .$imagefile);
+            }
+        }
+        return redirect()->route('map')->with('success', 'Point has been deleted');
     }
 }

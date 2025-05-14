@@ -13,15 +13,18 @@ class PolygonsController extends Controller
     {
         $this->polygons = new PolygonsModel();
     }
-    /**
-     * Display a listing of the resource.
-     */
 
+    public function index()
+    {
+        $data = [
+            'title' => 'Map',
+        ];
+        return view('map', $data);
+    }
 
     /**
      * Show the form for creating a new resource.
      */
-
 
     /**
      * Store a newly created resource in storage.
@@ -47,12 +50,12 @@ class PolygonsController extends Controller
             ]
         );
 
-        //Create image directory if not exsits
+        //Membuat tempat penyimpanan gambar
         if (!is_dir('storage/images')) {
             mkdir('./storage/images', 0777);
         }
 
-        //Get image file
+        //Mendapatkan file gambar
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $name_image = time() . "_polygon." . strtolower($image->getClientOriginalExtension());
@@ -78,8 +81,42 @@ class PolygonsController extends Controller
         return redirect()->route('map')->with('success', 'Polygon has been added');
     }
 
+    public function edit(string $id)
+    {
+        $data = [
+            'title' => 'Edit Polygon',
+            'id' => $id,
+        ];
+
+        return view('edit-polygon', $data);
+    }
+
     public function create()
     {
-        return view('polygons.create');
+        //return view('polygons.create');
+    }
+
+    public function destroy(string $id)
+    {
+        // Ambil nama file image dari model Polygon
+        $imagefile = $this->polygons->find($id)->image;
+
+        // Hapus record Polygon
+        if (! $this->polygons->destroy($id)) {
+            return redirect()->route('map')
+                ->with('error', 'Failed to delete polygon');
+        }
+
+        // Kalau ada file-nya, cek dan hapus
+        if ($imagefile !== null) {
+            $filePath = storage_path('app/public/images/' . $imagefile);
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+        }
+
+        // Redirect sukses
+        return redirect()->route('map')
+            ->with('success', 'Polygon deleted successfully');
     }
 }
