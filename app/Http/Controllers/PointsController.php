@@ -7,11 +7,15 @@ use Illuminate\Http\Request;
 
 class PointsController extends Controller
 {
+    protected $points;
+    protected $imageFolder;
+
     public function __construct()
     {
         $this->points = new PointsModel();
+        // Tentukan folder gambar di public/storage/images
+        $this->imageFolder = public_path('storage/images');
     }
-
 
     /**
      * Display a listing of the resource.
@@ -37,52 +41,48 @@ class PointsController extends Controller
      */
     public function store(Request $request)
     {
-        //Validate request
-        $request->validate(
-            [
-                'name'        => 'required|unique:points,name',
-                'description' => 'required',
-                'geom_point'  => 'required',
-                'image'       => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10240',
-            ],
-            [
-                'name.required'        => 'Name is required',
-                'name.unique'          => 'Name already exists',
-                'description.required' => 'Description is required',
-                'geom_point.required'  => 'Geometry point is required',
-                'image.image'          => 'File harus berupa gambar',
-                'image.mimes'          => 'Format gambar hanya jpeg,png,jpg,gif,svg',
-                'image.max'            => 'Ukuran gambar maksimal 10MB',
-            ]
-        );
+        // Validate request
+        $request->validate([
+            'name'        => 'required|unique:points,name',
+            'description' => 'required',
+            'geom_point'  => 'required',
+            'image'       => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10240',
+        ],[
+            'name.required'        => 'Name is required',
+            'name.unique'          => 'Name already exists',
+            'description.required' => 'Description is required',
+            'geom_point.required'  => 'Geometry point is required',
+            'image.image'          => 'File harus berupa gambar',
+            'image.mimes'          => 'Format gambar hanya jpeg,png,jpg,gif,svg',
+            'image.max'            => 'Ukuran gambar maksimal 10MB',
+        ]);
 
-        //Membuat tempat penyimpanan gambar
-        if (!is_dir('storage/images')) {
-            mkdir('./storage/images', 0777);
+        // Buat folder jika belum ada
+        if (!is_dir($this->imageFolder)) {
+            mkdir($this->imageFolder, 0777, true);
         }
 
-        //Mendapatkan file gambar
+        // Proses upload gambar
         if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $name_image = time() . "_point." . strtolower($image->getClientOriginalExtension());
-            $image->move('storage/images', $name_image);
+            $file = $request->file('image');
+            $name_image = time() . '_point.' . $file->getClientOriginalExtension();
+            $file->move($this->imageFolder, $name_image);
         } else {
             $name_image = null;
         }
 
         $data = [
-            'geom' => $request->geom_point,
-            'name' => $request->name,
+            'geom'        => $request->geom_point,
+            'name'        => $request->name,
             'description' => $request->description,
             'image'       => $name_image,
         ];
 
         // Membuat data
-        if (!$this->points->create($data)) {
+        if (! $this->points->create($data)) {
             return redirect()->route('map')->with('error', 'Point failed to add');
         }
 
-        // Kembalikan ke peta1
         return redirect()->route('map')->with('success', 'Point has been added');
     }
 
@@ -101,18 +101,67 @@ class PointsController extends Controller
     {
         $data = [
             'title' => 'Edit Point',
-            'id' => $id,
+            'id'    => $id,
         ];
 
         return view('edit-point', $data);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update request sesuai id.
      */
     public function update(Request $request, string $id)
     {
-        //
+        // Validate request
+        $request->validate([
+            'name'        => 'required|unique:points,name,' . $id,
+            'description' => 'required',
+            'geom_point'  => 'required',
+            'image'       => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10240',
+        ],[
+            'name.required'        => 'Name is required',
+            'name.unique'          => 'Name already exists',
+            'description.required' => 'Description is required',
+            'geom_point.required'  => 'Geometry point is required',
+            'image.image'          => 'File harus berupa gambar',
+            'image.mimes'          => 'Format gambar hanya jpeg,png,jpg,gif,svg',
+            'image.max'            => 'Ukuran gambar maksimal 10MB',
+        ]);
+
+        // Buat folder jika belum ada
+        if (!is_dir($this->imageFolder)) {
+            mkdir($this->imageFolder, 0777, true);
+        }
+
+        // Ambil nama file lama
+        $old_image = $this->points->find($id)->image;
+
+        // Proses upload gambar baru dan hapus yang lama
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $name_image = time() . '_point.' . $file->getClientOriginalExtension();
+            $file->move($this->imageFolder, $name_image);
+
+            if ($old_image && file_exists($this->imageFolder . '/' . $old_image)) {
+                unlink($this->imageFolder . '/' . $old_image);
+            }
+        } else {
+            $name_image = $old_image;
+        }
+
+        $data = [
+            'geom'        => $request->geom_point,
+            'name'        => $request->name,
+            'description' => $request->description,
+            'image'       => $name_image,
+        ];
+
+        // Update data
+        if (! $this->points->find($id)->update($data)) {
+            return redirect()->route('map')->with('error', 'Point failed to update');
+        }
+
+        return redirect()->route('map')->with('success', 'Point has been updated');
     }
 
     /**
@@ -121,15 +170,15 @@ class PointsController extends Controller
     public function destroy(string $id)
     {
         $imagefile = $this->points->find($id)->image;
-        if (!$this->points->destroy($id)){
+
+        if (! $this->points->destroy($id)) {
             return redirect()->route('map')->with('error', 'Point failed to delete');
         }
-        //Delete image file
-        if ($imagefile !=null){
-            if (file_exists('./storage/images/' .$imagefile)){
-                unlink('./storage/images/' .$imagefile);
-            }
+
+        if ($imagefile && file_exists($this->imageFolder . '/' . $imagefile)) {
+            unlink($this->imageFolder . '/' . $imagefile);
         }
+
         return redirect()->route('map')->with('success', 'Point has been deleted');
     }
 }
