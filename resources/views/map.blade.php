@@ -273,11 +273,12 @@
                     "Dibuat: " + feature.properties.created_at + "<br>" +
                     "<img src='{{ asset('storage/images') }}/" + feature.properties.image +
                     "' width='250' alt=''>" + "<br>" +
+                    "<p>Dibuat: " + feature.properties.user_created + "</p>";
 
-                    //tombol edit
-                    "<div class='row mt-4'>" +
-                    "<div class='col-6 text-end'>" +
-                    "<a href='" + routeedit +
+                //tombol edit
+                "<div class='row mt-4'>" +
+                "<div class='col-6 text-end'>" +
+                "<a href='" + routeedit +
                     "' class='btn btn-warning btn-sm'><i class='fa-solid fa-pen-to-square'></i></a>" +
                     "</div>" +
 
@@ -289,6 +290,8 @@
                     "</form>" +
                     "</div>" +
                     "</div>";
+
+
                 layer.on({
                     click: function(e) {
                         point.bindPopup(popupContent);
@@ -327,11 +330,12 @@
                     "Dibuat: " + feature.properties.created_at + "<br>" +
                     "<img src='{{ asset('storage/images') }}/" + feature.properties.image +
                     "' width='200' alt=''>" + "<br>" +
+                    "<p>Dibuat: " + feature.properties.user_created + "</p>";
 
-                    //tombol edit
-                    "<div class='row mt-4'>" +
-                    "<div class='col-6 text-end'>" +
-                    "<a href='" + routeedit +
+                //tombol edit
+                "<div class='row mt-4'>" +
+                "<div class='col-6 text-end'>" +
+                "<a href='" + routeedit +
                     "' class='btn btn-warning btn-sm'><i class='fa-solid fa-pen-to-square'></i></a>" +
                     "</div>" +
 
@@ -386,11 +390,12 @@
                     "Dibuat: " + feature.properties.created_at + "<br>" +
                     "<img src='{{ asset('storage/images') }}/" + feature.properties.image +
                     "' width='200' alt=''>" + "<br>" +
+                    "<p>Dibuat: " + feature.properties.user_created + "</p>";
 
-                    //tombol edit
-                    "<div class='row mt-4'>" +
-                    "<div class='col-6 text-end'>" +
-                    "<a href='" + routeedit +
+                //tombol edit
+                "<div class='row mt-4'>" +
+                "<div class='col-6 text-end'>" +
+                "<a href='" + routeedit +
                     "' class='btn btn-warning btn-sm'><i class='fa-solid fa-pen-to-square'></i></a>" +
                     "</div>" +
 

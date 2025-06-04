@@ -17,16 +17,19 @@ class PolylinesModel extends Model
     {
         $polylines = DB::table($this->table)
             ->select(
-                'id',
-                DB::raw('ST_AsGeoJSON(geom) AS geom'),
-                'name',
-                'description',
-                'image',
-                DB::raw('ST_Length(geom, true) AS length_m'),
-                DB::raw('ST_Length(geom, true) / 1000 AS length_km'),
-                'created_at',
-                'updated_at'
+                'polylines.id',
+                DB::raw('ST_AsGeoJSON(polylines.geom) AS geom'),
+                'polylines.name',
+                'polylines.description',
+                'polylines.image',
+                DB::raw('ST_Length(polylines.geom, true) AS length_m'),
+                DB::raw('ST_Length(polylines.geom, true) / 1000 AS length_km'),
+                'polylines.created_at',
+                'polylines.updated_at',
+                'polylines.user_id',
+                'users.name as user_created'
             )
+            ->leftJoin('users', 'polylines.user_id', '=', 'users.id')
             ->get();
 
         return [
@@ -44,6 +47,8 @@ class PolylinesModel extends Model
                         'length_km'   => $polyline->length_km,
                         'created_at'  => $polyline->created_at,
                         'updated_at'  => $polyline->updated_at,
+                        'user_id' => $polyline->user_id,
+                        'user_created' => $polyline->user_created,
                     ],
                 ];
             })->toArray(),

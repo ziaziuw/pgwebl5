@@ -74,6 +74,7 @@ class PolygonsController extends Controller
             'name'        => $request->name,
             'description' => $request->description,
             'image'       => $name_image,
+            'user_id'     => auth()->user()->id, //auth user memanggil/mendapatkan id dari user yg login (ini di dlm store)
         ];
 
         if (! $this->polygons->create($data)) {

@@ -71,11 +71,13 @@ class PointsController extends Controller
             $name_image = null;
         }
 
+        //memasukkan ke data
         $data = [
             'geom'        => $request->geom_point,
             'name'        => $request->name,
             'description' => $request->description,
             'image'       => $name_image,
+            'user_id'     => auth()->user()->id, //auth user memanggil/mendapatkan id dari user yg login (ini di dlm store)
         ];
 
         // Membuat data
