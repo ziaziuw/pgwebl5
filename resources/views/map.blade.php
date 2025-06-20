@@ -260,52 +260,55 @@
         var point = L.geoJson(null, {
             onEachFeature: function(feature, layer) {
 
-                // blade
-                var routedelete = "{{ route('points.destroy', ':id') }}"; //
-                // JS
-                routedelete = routedelete.replace(':id', feature.properties.id); //
+                // generate route delete & edit
+                var routedelete = "{{ route('points.destroy', ':id') }}";
+                routedelete = routedelete.replace(':id', feature.properties.id);
 
                 var routeedit = "{{ route('points.edit', ':id') }}";
                 routeedit = routeedit.replace(':id', feature.properties.id);
 
-                var popupContent = "Nama: " + feature.properties.name + "<br>" +
+                // isi popup yang udah ada
+                var popupContent =
+                    "Nama: " + feature.properties.name + "<br>" +
                     "Deskripsi: " + feature.properties.description + "<br>" +
                     "Dibuat: " + feature.properties.created_at + "<br>" +
                     "<img src='{{ asset('storage/images') }}/" + feature.properties.image +
-                    "' width='250' alt=''>" + "<br>" +
+                    "' width='250' alt=''><br>" +
                     "<p>Dibuat: " + feature.properties.user_created + "</p>";
 
-                //tombol edit
-                "<div class='row mt-4'>" +
-                "<div class='col-6 text-end'>" +
-                "<a href='" + routeedit +
+                // bikin tombol edit & hapus, dengan escape quote untuk input CSRF/method
+                var tombolHTML =
+                    "<div class='row mt-4'>" +
+                    "<div class='col-6 text-end'>" +
+                    "<a href='" + routeedit +
                     "' class='btn btn-warning btn-sm'><i class='fa-solid fa-pen-to-square'></i></a>" +
                     "</div>" +
-
-                    //tombol hapus
-                    "<div class ='col-6'>" +
+                    "<div class='col-6'>" +
                     "<form method='POST' action='" + routedelete + "'>" +
-                    '@csrf' + '@method('DELETE')' +
-                    "<button type='submit' class='btn btn-danger btn-sm' onclick='return confirm(`Are you sure to delete?`)'><i class='fa-solid fa-trash-can'></i></button>" +
+                    "<input type=\"hidden\" name=\"_token\" value=\"{{ csrf_token() }}\">" +
+                    "<input type=\"hidden\" name=\"_method\" value=\"DELETE\">" +
+                    "<button type='submit' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure to delete?\")'><i class='fa-solid fa-trash-can'></i></button>" +
                     "</form>" +
                     "</div>" +
                     "</div>";
 
-
                 layer.on({
                     click: function(e) {
-                        point.bindPopup(popupContent);
+                        // bind popup ke layer, gabung popupContent + tombolHTML
+                        layer.bindPopup(popupContent + tombolHTML);
                     },
                     mouseover: function(e) {
-                        point.bindTooltip(feature.properties.name);
-                    },
+                        layer.bindTooltip(feature.properties.name);
+                    }
                 });
-            },
+            }
         });
+
         $.getJSON("{{ route('api.points') }}", function(data) {
             point.addData(data);
             map.addLayer(point);
         });
+
 
 
         /* GeoJSON Polylines */
@@ -313,51 +316,55 @@
             style: function(feature) {
                 return {
                     color: "red", // Warna garis
-                    weight: 4, // Ketebalan garis
-                    opacity: 0.8 // Transparansi garis
+                    weight: 4, // Ketebalan
+                    opacity: 0.8 // Transparansi
                 };
             },
             onEachFeature: function(feature, layer) {
-
+                // generate route delete & edit
                 var routedelete = "{{ route('polylines.destroy', ':id') }}";
                 routedelete = routedelete.replace(':id', feature.properties.id);
 
                 var routeedit = "{{ route('polylines.edit', ':id') }}";
                 routeedit = routeedit.replace(':id', feature.properties.id);
 
-                var popupContent = "Nama: " + feature.properties.name + "<br>" +
+                // isi popup yang udah ada
+                var popupContent =
+                    "Nama: " + feature.properties.name + "<br>" +
                     "Deskripsi: " + feature.properties.description + "<br>" +
                     "Dibuat: " + feature.properties.created_at + "<br>" +
                     "<img src='{{ asset('storage/images') }}/" + feature.properties.image +
-                    "' width='200' alt=''>" + "<br>" +
+                    "' width='200' alt=''><br>" +
                     "<p>Dibuat: " + feature.properties.user_created + "</p>";
 
-                //tombol edit
-                "<div class='row mt-4'>" +
-                "<div class='col-6 text-end'>" +
-                "<a href='" + routeedit +
+                // bikin HTML tombol edit & hapus, pakai escape quote biar Blade token gak nge-crash JS
+                var tombolHTML =
+                    "<div class='row mt-4'>" +
+                    "<div class='col-6 text-end'>" +
+                    "<a href='" + routeedit +
                     "' class='btn btn-warning btn-sm'><i class='fa-solid fa-pen-to-square'></i></a>" +
                     "</div>" +
-
-                    //tombol hapus
-                    "<div class ='col-6'>" +
+                    "<div class='col-6'>" +
                     "<form method='POST' action='" + routedelete + "'>" +
-                    '@csrf' + '@method('DELETE')' +
-                    "<button type='submit' class='btn btn-danger btn-sm' onclick='return confirm(`Are you sure to delete?`)'><i class='fa-solid fa-trash-can'></i></button>" +
-                    "</form>"
-                "</div>" +
-                "</div>";
+                    "<input type=\"hidden\" name=\"_token\" value=\"{{ csrf_token() }}\">" +
+                    "<input type=\"hidden\" name=\"_method\" value=\"DELETE\">" +
+                    "<button type='submit' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure to delete?\")'><i class='fa-solid fa-trash-can'></i></button>" +
+                    "</form>" +
+                    "</div>" +
+                    "</div>";
 
                 layer.on({
                     click: function(e) {
-                        polyline.bindPopup(popupContent);
+                        // gabungkan popupContent + tombolHTML, lalu bind ke layer
+                        layer.bindPopup(popupContent + tombolHTML);
                     },
                     mouseover: function(e) {
-                        polyline.bindTooltip(feature.properties.name);
-                    },
+                        layer.bindTooltip(feature.properties.name);
+                    }
                 });
             },
         });
+
         $.getJSON("{{ route('api.polylines') }}", function(data) {
             polyline.addData(data);
             map.addLayer(polyline);
@@ -365,19 +372,19 @@
 
 
 
+
         // GeoJSON Polygons
         var polygon = L.geoJson(null, {
             style: function(feature) {
                 return {
-                    color: "#2D336B", // Warna garis tepi polygon
-                    fillColor: "#FBE4D6", // Warna isi polygon
-                    weight: 2, // Ketebalan garis tepi
-                    opacity: 1, // Transparansi garis tepi
-                    fillOpacity: 0.5 // Transparansi warna isi
+                    color: "#2D336B", // Warna garis tepi
+                    fillColor: "#FBE4D6", // Warna isi
+                    weight: 2, // Ketebalan garis
+                    opacity: 1, // Transparansi garis
+                    fillOpacity: 0.5 // Transparansi isi
                 };
             },
             onEachFeature: function(feature, layer) {
-
 
                 var routedelete = "{{ route('polygons.destroy', ':id') }}";
                 routedelete = routedelete.replace(':id', feature.properties.id);
@@ -385,43 +392,40 @@
                 var routeedit = "{{ route('polygons.edit', ':id') }}";
                 routeedit = routeedit.replace(':id', feature.properties.id);
 
-                var popupContent = "Nama: " + feature.properties.name + "<br>" +
+                var popupContent =
+                    "Nama: " + feature.properties.name + "<br>" +
                     "Deskripsi: " + feature.properties.description + "<br>" +
                     "Dibuat: " + feature.properties.created_at + "<br>" +
                     "<img src='{{ asset('storage/images') }}/" + feature.properties.image +
-                    "' width='200' alt=''>" + "<br>" +
+                    "' width='200' alt=''><br>" +
                     "<p>Dibuat: " + feature.properties.user_created + "</p>";
 
-                //tombol edit
-                "<div class='row mt-4'>" +
-                "<div class='col-6 text-end'>" +
-                "<a href='" + routeedit +
+                // Bikin HTML tombol edit & hapus, pake escape biar Blade token aman
+                var tombolHTML =
+                    "<div class='row mt-4'>" +
+                    "<div class='col-6 text-end'>" +
+                    "<a href='" + routeedit +
                     "' class='btn btn-warning btn-sm'><i class='fa-solid fa-pen-to-square'></i></a>" +
                     "</div>" +
-
-                    //tombol hapus
-                    "<div class ='col-6'>" +
+                    "<div class='col-6'>" +
                     "<form method='POST' action='" + routedelete + "'>" +
-                    '@csrf' + '@method('DELETE')' +
-                    "<button type='submit' class='btn btn-danger btn-sm' onclick='return confirm(`Are you sure to delete?`)'><i class='fa-solid fa-trash-can'></i></button>" +
-                    "</form>"
-                "</div>"
-                "</div>";
+                    "<input type=\"hidden\" name=\"_token\" value=\"{{ csrf_token() }}\">" +
+                    "<input type=\"hidden\" name=\"_method\" value=\"DELETE\">" +
+                    "<button type='submit' class='btn btn-danger btn-sm' onclick='return confirm(\"Are you sure to delete?\")'><i class='fa-solid fa-trash-can'></i></button>" +
+                    "</form>" +
+                    "</div>" +
+                    "</div>";
 
-                layer.bindPopup(popupContent);
+                // Gabungin isi popup + tombol, lalu bind ke layer
+                layer.bindPopup(popupContent + tombolHTML);
             },
         });
+
         $.getJSON("{{ route('api.polygons') }}", function(data) {
             polygon.addData(data);
             map.addLayer(polygon);
-
         });
-        // Group layers
-        var baseMaps = {
-            "OpenStreetMap": L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            })
-        };
+
 
         // Overlay layers (data GeoJSON)
         var overlayMaps = {

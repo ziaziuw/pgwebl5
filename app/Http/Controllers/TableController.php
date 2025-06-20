@@ -19,6 +19,8 @@ class TableController extends Controller
         $data = [
             'title' => 'Table',
             'points' => $this->points->all(), //memanggil semua data dari tabel points lalu ditampilkan pd view table
+            'polylines' => $this->polylines->all(),
+            'polygons' => $this->polygons->all(),
         ];
         return view('table', $data);
     }
